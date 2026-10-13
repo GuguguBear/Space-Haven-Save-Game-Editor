@@ -1623,3 +1623,67 @@ Water Purifier Process Group	净水器工艺组
 Water Vapor (Atmospheric Resource)	水蒸气（大气资源）
 Water Vapor to Water	水蒸气转化为水
 Water to Oxygen	水转化为氧气
+Easy	简单
+Normal	正常
+Hard	困难
+Reduced	降低
+Full	完整
+ToolsOnly	仅工具
+VeryRare	非常稀有
+Rare	罕见
+Common	常见
+VeryCommon	非常普遍
+VeryLow	极低
+Low	低
+High	高
+VeryHigh	极高
+MinorThreat	轻微威胁
+ModerateThreat	中等威胁
+SeriousThreat	严重威胁
+SubstantialThreat	重大威胁
+LittleThreat	较小威胁
+Android	仿生人
+Civilian	平民
+Cultist	邪教徒
+FlamingSwords	烈焰之剑
+HavenFoundation	避风港基石
+Merchant	商人
+Military	军方
+Pirate	海盗
+Slaver	奴隶主
+Perception	感知
+Unlocked	已解锁
+Locked	未解锁
+Food	食物
+Rest	休息
+Comfort	舒适
+Mood	心情
+Temperature	温度
+Co2Gas	二氧化碳
+SmokeGas	烟雾
+HazardousGas	有害气体
+Exposure	暴露
+Reserve: {0}	储备：{0}
+Total Crew: {0}	船员总数：{0}
+Currently follows {0}. Applying changes will make it custom.	当前跟随 {0}。应用更改后会变成自定义日程。
+Currently uses a custom individual schedule.	当前使用自定义的单独日程。
+Currently follows {0}.	当前跟随 {0}。
+Page {0} of {1}	第 {0} 页，共 {1} 页
+{0} (Crew ID {1})	{0}（船员编号 {1}）
+Added {0} selected trait(s) across {1} crew member(s). New trait entries added: {2}. Existing traits were skipped.	已把 {0} 个所选特质加给 {1} 名船员。新增 {2} 条，已有特质已跳过。
+This save does not contain a <research> section.	此存档没有 <research> 部分。
+All research technologies have been marked completed.	所有研究科技都已标为完成。
+Research queue cleared.	研究队列已清空。
+Crew schedules: No crew loaded	船员日程：未加载船员
+Total Crew: N/A	船员总数：无
+0 item types | 0 total units | 0 containers	0 种物品 | 共 0 件 | 0 个容器
+{0} item types | {1} total units | {2} containers	{0} 种物品 | 共 {1} 件 | {2} 个容器
+Please enter a valid positive number to add.	请输入要添加的有效正数。
+No crew members found for this ship. Add a crew member first.	这艘飞船没有船员。请先添加一名船员。
+All skills set to their maximum level for every character.	已把所有角色的当前技能设为其上限。
+{0} preset loaded. Click Apply Selected Faction to commit it.	已载入 {0} 预设。点击“应用所选派系”后才会写入。
+{0} updated in memory. Use File > Save to make it permanent.	已在内存中更新 {0}。请使用“文件 > 保存”使其永久生效。
+Completed {0}. Use File > Save to write the change.	已完成 {0}。请使用“文件 > 保存”写入更改。
+Reset {0} to not started.	已把 {0} 重置为未开始。
+Added {0} to the research queue.	已把 {0} 加入研究队列。
+Removed {0} from the research queue.	已把 {0} 移出研究队列。

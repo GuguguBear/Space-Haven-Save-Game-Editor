@@ -3,6 +3,13 @@ Imports System.Xml.Linq
 Public Class ResearchTechnologyItem
     Public Property TechId As Integer
     Public Property TechnologyName As String
+
+    Public ReadOnly Property DisplayTechnology As String
+        Get
+            Return SpaceHavenEditor2.Localization.T(If(TechnologyName, ""))
+        End Get
+    End Property
+
     Public Property StateElement As XElement
     Public Property IsQueued As Boolean
 

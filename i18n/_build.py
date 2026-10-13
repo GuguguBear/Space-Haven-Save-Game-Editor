@@ -28,6 +28,41 @@ def load_manual():
     return table
 
 
+def load_text_nodes(text):
+    nodes = {}
+    for block in re.findall(r"<t\b([^>]*)>(.*?)</t>", text, flags=re.DOTALL):
+        attrs, body = block
+        id_match = re.search(r'\bid="(\d+)"', attrs)
+        if not id_match:
+            continue
+        languages = {}
+        for lang, value in re.findall(r"<([A-Z]{2,4})>(.*?)</\1>", body, flags=re.DOTALL):
+            languages[lang] = html.unescape(re.sub(r"\s+", " ", value).strip())
+        if languages.get("EN") and languages.get("CN"):
+            nodes[int(id_match.group(1))] = (languages["EN"], languages["CN"])
+    return nodes
+
+
+def load_element_translations():
+    if not JAR.exists():
+        return {}
+    with zipfile.ZipFile(JAR) as archive:
+        texts = archive.read("library/texts").decode("utf-8", errors="replace")
+        haven = archive.read("library/haven").decode("utf-8", errors="replace")
+    text_nodes = load_text_nodes(texts)
+    translations = {}
+    for match in re.finditer(r'<name tid="(\d+)"', haven):
+        window = haven[max(0, match.start() - 700):match.start()]
+        mids = re.findall(r'\bmid="(\d+)"', window)
+        ids = mids or re.findall(r'\bid="(\d+)"', window)
+        if not ids:
+            continue
+        node = text_nodes.get(int(match.group(1)))
+        if node:
+            translations[int(ids[-1])] = node
+    return translations
+
+
 def load_game_glossary():
     glossary = {}
     if not JAR.exists():
@@ -46,9 +81,16 @@ def load_game_glossary():
     return glossary
 
 
+def id_entries():
+    entries = []
+    for path in ROOT.glob("*.vb"):
+        text = path.read_text(encoding="utf-8")
+        entries.extend((int(element_id), name) for element_id, name in re.findall(r'\{\s*(-?\d+)\s*,\s*"([^"]+)"', text))
+    return entries
+
+
 def id_names():
-    text = (ROOT / "IdCollection.vb").read_text(encoding="utf-8")
-    return set(re.findall(r'\{\s*-?\d+\s*,\s*"([^"]+)"', text))
+    return {name for _, name in id_entries()}
 
 
 def traditional(text):
@@ -77,6 +119,15 @@ def main():
     manual = load_manual()
     glossary = load_game_glossary()
     catalog = dict(manual)
+    elements = load_element_translations()
+    id_filled = 0
+    for element_id, name in id_entries():
+        if name in manual:
+            continue
+        pair = elements.get(element_id)
+        if pair and pair[1]:
+            catalog[name] = pair[1]
+            id_filled += 1
     folded = {}
     for english, simplified in glossary.items():
         folded.setdefault(english.casefold(), simplified)
@@ -86,7 +137,8 @@ def main():
         translation = glossary.get(name) or folded.get(name.casefold())
         if translation:
             catalog[name] = translation
-    keys = [line for line in (ROOT / "_keys.txt").read_text(encoding="utf-8").splitlines()]
+    keys_path = ROOT / "_keys.txt"
+    keys = keys_path.read_text(encoding="utf-8").splitlines() if keys_path.exists() else []
     missing = [key for key in keys if key not in catalog and key not in {"English", "X", "Language / 语言 / 語言"}]
     (I18N / "missing.txt").write_text("\n".join(missing), encoding="utf-8")
     missing_names = sorted(name for name in id_names() if name not in catalog)
@@ -95,7 +147,9 @@ def main():
     zh_tw = {key: traditional(zhconv.convert(value, "zh-tw")) for key, value in zh_cn.items()}
     (I18N / "zh-CN.json").write_text(json.dumps(zh_cn, ensure_ascii=False, indent=2), encoding="utf-8")
     (I18N / "zh-TW.json").write_text(json.dumps(zh_tw, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"catalog {len(zh_cn)} missing {len(missing)} names {len(missing_names)} glossary {len(glossary)}")
+    print(f"catalog {len(zh_cn)} missing {len(missing)} names {len(missing_names)} glossary {len(glossary)} by-id {id_filled}")
+    for sample in ("Hat", "Sniper Rifle", "Sunglasses", "Advanced Assembler", "Cleaning Tool", "Fire Extinguisher", "Grenade", "Shotgun Autoloader"):
+        print(sample, "=>", catalog.get(sample, "MISSING"))
 
 
 if __name__ == "__main__":

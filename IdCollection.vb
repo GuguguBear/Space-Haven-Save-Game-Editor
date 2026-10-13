@@ -3,7 +3,7 @@
         {210, "Bravery"},
         {212, "Zest"},
         {213, "Intelligence"},
-        {214, "Preception"}
+        {214, "Perception"}
    }
 
     Public Shared ReadOnly DefaultSkillIDs As New Dictionary(Of Integer, String) From {

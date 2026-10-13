@@ -658,7 +658,8 @@ Namespace SpaceHavenEditor2
             dgvEmbeddedNewAttributes.ItemsSource = embeddedNewCrewAttributes
             dgvEmbeddedNewSkills.ItemsSource = embeddedNewCrewSkills
             lstEmbeddedNewTraits.ItemsSource = embeddedNewCrewTraits
-            cmbEmbeddedAvailableTraits.ItemsSource = IdCollection.DefaultTraitIDs.OrderBy(Function(kvp) kvp.Value).ToList()
+            cmbEmbeddedAvailableTraits.ItemsSource = IdCollection.DefaultTraitIDs.OrderBy(Function(kvp) kvp.Value).
+                Select(Function(kvp) New IdLabel(kvp.Key, kvp.Value)).ToList()
             If cmbEmbeddedAvailableTraits.Items.Count > 0 Then cmbEmbeddedAvailableTraits.SelectedIndex = 0
         End Sub
 
@@ -704,10 +705,18 @@ Namespace SpaceHavenEditor2
                 values.Insert(0, currentValue)
             End If
 
-            combo.ItemsSource = values
-            combo.SelectedItem = values.FirstOrDefault(Function(value) String.Equals(value, currentValue, StringComparison.OrdinalIgnoreCase))
-            If combo.SelectedItem Is Nothing AndAlso values.Count > 0 Then combo.SelectedIndex = 0
+            combo.DisplayMemberPath = "Display"
+            combo.SelectedValuePath = "Value"
+            combo.ItemsSource = values.Select(Function(value) New LocalizedOption(value)).ToList()
+            combo.SelectedValue = values.FirstOrDefault(Function(value) String.Equals(value, currentValue, StringComparison.OrdinalIgnoreCase))
+            If combo.SelectedValue Is Nothing AndAlso values.Count > 0 Then combo.SelectedIndex = 0
         End Sub
+
+        Private Function SelectedRule(combo As ComboBox) As String
+            Dim selectedValue = TryCast(combo.SelectedValue, String)
+            If Not String.IsNullOrWhiteSpace(selectedValue) Then Return selectedValue
+            Return TryCast(combo.SelectedItem, LocalizedOption)?.Value
+        End Function
 
         Private Function ReadBooleanAttribute(element As XElement, attributeName As String, defaultValue As Boolean) As Boolean
             If element Is Nothing Then Return defaultValue
@@ -751,23 +760,23 @@ Namespace SpaceHavenEditor2
             End If
 
             Dim changed As Boolean = False
-            changed = UpdateRuleAttribute(diffElement, "moodDifficulty", TryCast(cmbMoodDifficulty.SelectedItem, String)) OrElse changed
-            changed = UpdateRuleAttribute(diffElement, "npcTargeting", TryCast(cmbNpcTargeting.SelectedItem, String)) OrElse changed
-            changed = UpdateRuleAttribute(diffElement, "questDifficulty", TryCast(cmbQuestDifficulty.SelectedItem, String)) OrElse changed
+            changed = UpdateRuleAttribute(diffElement, "moodDifficulty", SelectedRule(cmbMoodDifficulty)) OrElse changed
+            changed = UpdateRuleAttribute(diffElement, "npcTargeting", SelectedRule(cmbNpcTargeting)) OrElse changed
+            changed = UpdateRuleAttribute(diffElement, "questDifficulty", SelectedRule(cmbQuestDifficulty)) OrElse changed
             changed = UpdateRuleAttribute(diffElement, "enemiesEnabled", chkRulesEnemiesEnabled.IsChecked.GetValueOrDefault().ToString().ToLowerInvariant()) OrElse changed
             changed = UpdateRuleAttribute(diffElement, "friendsEnabled", chkRulesFriendsEnabled.IsChecked.GetValueOrDefault().ToString().ToLowerInvariant()) OrElse changed
             changed = UpdateRuleAttribute(diffElement, "loversEnabled", chkRulesLoversEnabled.IsChecked.GetValueOrDefault().ToString().ToLowerInvariant()) OrElse changed
 
-            changed = UpdateRuleAttribute(modeElement, "wearAndTear", TryCast(cmbWearAndTear.SelectedItem, String)) OrElse changed
+            changed = UpdateRuleAttribute(modeElement, "wearAndTear", SelectedRule(cmbWearAndTear)) OrElse changed
             changed = UpdateRuleAttribute(modeElement, "rebuildingCosts", chkRebuildingCosts.IsChecked.GetValueOrDefault().ToString().ToLowerInvariant()) OrElse changed
-            changed = UpdateRuleAttribute(modeElement, "monsters", TryCast(cmbMonsterFrequency.SelectedItem, String)) OrElse changed
-            changed = UpdateRuleAttribute(modeElement, "robots", TryCast(cmbRobotFrequency.SelectedItem, String)) OrElse changed
-            changed = UpdateRuleAttribute(modeElement, "solarFlares", TryCast(cmbSolarFlareFrequency.SelectedItem, String)) OrElse changed
-            changed = UpdateRuleAttribute(modeElement, "microMeteoroids", TryCast(cmbMeteorFrequency.SelectedItem, String)) OrElse changed
-            changed = UpdateRuleAttribute(modeElement, "derelicts", TryCast(cmbDerelictFrequency.SelectedItem, String)) OrElse changed
-            changed = UpdateRuleAttribute(modeElement, "derelictLoot", TryCast(cmbDerelictLoot.SelectedItem, String)) OrElse changed
-            changed = UpdateRuleAttribute(modeElement, "asteroids", TryCast(cmbAsteroidAbundance.SelectedItem, String)) OrElse changed
-            changed = UpdateRuleAttribute(modeElement, "interTravelThreat", TryCast(cmbTravelThreat.SelectedItem, String)) OrElse changed
+            changed = UpdateRuleAttribute(modeElement, "monsters", SelectedRule(cmbMonsterFrequency)) OrElse changed
+            changed = UpdateRuleAttribute(modeElement, "robots", SelectedRule(cmbRobotFrequency)) OrElse changed
+            changed = UpdateRuleAttribute(modeElement, "solarFlares", SelectedRule(cmbSolarFlareFrequency)) OrElse changed
+            changed = UpdateRuleAttribute(modeElement, "microMeteoroids", SelectedRule(cmbMeteorFrequency)) OrElse changed
+            changed = UpdateRuleAttribute(modeElement, "derelicts", SelectedRule(cmbDerelictFrequency)) OrElse changed
+            changed = UpdateRuleAttribute(modeElement, "derelictLoot", SelectedRule(cmbDerelictLoot)) OrElse changed
+            changed = UpdateRuleAttribute(modeElement, "asteroids", SelectedRule(cmbAsteroidAbundance)) OrElse changed
+            changed = UpdateRuleAttribute(modeElement, "interTravelThreat", SelectedRule(cmbTravelThreat)) OrElse changed
 
             If changed Then
                 MarkUnsavedChanges()
@@ -1216,7 +1225,7 @@ Namespace SpaceHavenEditor2
             faction.AccessServices = services
             faction.AccessHire = hire
             dgvFactionReputation.Items.Refresh()
-            lblFactionStatus.Text = $"{faction.FactionName} preset loaded. Click Apply Selected Faction to commit it."
+            lblFactionStatus.Text = Localization.F("{0} preset loaded. Click Apply Selected Faction to commit it.", Localization.T(faction.FactionName))
         End Sub
 
         Private Sub btnFactionEnemy_Click(sender As Object, e As RoutedEventArgs)
@@ -1274,7 +1283,7 @@ Namespace SpaceHavenEditor2
                 faction.SourceElement.SetAttributeValue("playerOwesSettlement", faction.SettlementDebt)
 
                 MarkUnsavedChanges()
-                lblFactionStatus.Text = $"{faction.FactionName} updated in memory. Use File > Save to make it permanent."
+                lblFactionStatus.Text = Localization.F("{0} updated in memory. Use File > Save to make it permanent.", Localization.T(faction.FactionName))
             Catch ex As Exception
                 MessageBox.Show(Localization.F("Could not update faction: {0}", ex.Message), Localization.T("Faction Update Error"),
                                 MessageBoxButton.OK, MessageBoxImage.Error)
@@ -2085,7 +2094,7 @@ Namespace SpaceHavenEditor2
             If selectedShip Is Nothing OrElse selectedShip.Sid = -1 Then
                 lstCharacters.ItemsSource = Nothing
                 ClearDataGrids()
-                txtCrewCount.Text = "Total Crew: 0"
+                txtCrewCount.Text = Localization.T("Total Crew: 0")
                 cmbTemplateCrew.ItemsSource = Nothing
                 Return
             End If
@@ -2292,9 +2301,9 @@ Namespace SpaceHavenEditor2
                                  .ToList()
             lstCharacters.ItemsSource = shipCrew
             If shipCrew IsNot Nothing Then
-                txtCrewCount.Text = $"Total Crew: {shipCrew.Count}"
+                txtCrewCount.Text = Localization.F("Total Crew: {0}", shipCrew.Count)
             Else
-                txtCrewCount.Text = "Total Crew: 0"
+                txtCrewCount.Text = Localization.T("Total Crew: 0")
             End If
             PopulateBulkScheduleCrew(shipSid)
             PopulateBulkLoadoutCrew(shipSid)
@@ -2321,8 +2330,8 @@ Namespace SpaceHavenEditor2
                 PopulateGlobalScheduleComboBoxes()
                 cmbCrewGlobalSchedule.SelectedValue = selectedCharacter.GlobalScheduleId
                 txtScheduleMode.Text = If(selectedCharacter.UsesGlobalSchedule,
-                                          $"Currently follows {GetGlobalScheduleDisplayName(selectedCharacter.GlobalScheduleId)}. Applying changes will make it custom.",
-                                          "Currently uses a custom individual schedule.")
+                                          Localization.F("Currently follows {0}. Applying changes will make it custom.", GetGlobalScheduleDisplayName(selectedCharacter.GlobalScheduleId)),
+                                          Localization.T("Currently uses a custom individual schedule."))
 
                 PopulateAddTraitComboBox(selectedCharacter)
                 RefreshCrewRecoverySummary(selectedCharacter)
@@ -2590,13 +2599,13 @@ Namespace SpaceHavenEditor2
 
         Private Sub LoadCrewLoadoutEditor(character As Character)
             If character Is Nothing Then
-                txtCrewLoadoutMember.Text = "Select a crew member to view their loadout."
+                txtCrewLoadoutMember.Text = Localization.T("Select a crew member to view their loadout.")
                 PopulateLoadoutControls(New LoadoutTemplate(), True)
                 Return
             End If
             Dim loadoutNode = FindCharacterNode(character.CharacterEntityId)?.Element("loadout")
             PopulateLoadoutControls(LoadoutFromElement(loadoutNode), True)
-            txtCrewLoadoutMember.Text = $"{character.CharacterName} (Crew ID {character.CharacterEntityId})"
+            txtCrewLoadoutMember.Text = Localization.F("{0} (Crew ID {1})", character.CharacterName, character.CharacterEntityId)
             lblCrewLoadoutStatus.Text = If(loadoutNode Is Nothing,
                                            "This crew member has no loadout node yet. Applying will create one.",
                                            $"Current configuration: {GetCrewLoadoutSummary(character)}")
@@ -2882,7 +2891,7 @@ Namespace SpaceHavenEditor2
                 scheduleNode.SetAttributeValue("p2", PackScheduleSlots(selectedCharacter.CharacterSchedule, 16))
                 persNode.SetAttributeValue("useGlobal", "false")
                 selectedCharacter.UsesGlobalSchedule = False
-                txtScheduleMode.Text = "Currently uses a custom individual schedule."
+                txtScheduleMode.Text = Localization.T("Currently uses a custom individual schedule.")
                 MarkUnsavedChanges()
             Catch ex As Exception
                 MessageBox.Show(Localization.F("Could not update crew schedule: {0}", ex.Message), Localization.T("Schedule Error"),
@@ -3120,7 +3129,7 @@ Namespace SpaceHavenEditor2
             Dim selectedCharacter = TryCast(lstCharacters.SelectedItem, Character)
             If selectedCharacter IsNot Nothing AndAlso selectedCharacter.UsesGlobalSchedule Then
                 cmbCrewGlobalSchedule.SelectedValue = selectedCharacter.GlobalScheduleId
-                txtScheduleMode.Text = $"Currently follows {GetGlobalScheduleDisplayName(selectedCharacter.GlobalScheduleId)}."
+                txtScheduleMode.Text = Localization.F("Currently follows {0}.", GetGlobalScheduleDisplayName(selectedCharacter.GlobalScheduleId))
                 dgvCrewSchedule.ItemsSource = New ObservableCollection(Of CrewScheduleSlot)(selectedCharacter.CharacterSchedule)
             End If
         End Sub
@@ -3168,7 +3177,7 @@ Namespace SpaceHavenEditor2
             If researchElement Is Nothing Then
                 dgvResearchTechnologies.ItemsSource = Nothing
                 lstResearchQueue.ItemsSource = Nothing
-                lblResearchStatus.Text = "This save does not contain a <research> section."
+                lblResearchStatus.Text = Localization.T("This save does not contain a <research> section.")
                 Return
             End If
 
@@ -3262,7 +3271,7 @@ Namespace SpaceHavenEditor2
             RemoveTechnologyFromResearchQueue(technology.TechId)
             LoadResearchEditor(technology.TechId)
             MarkUnsavedChanges()
-            lblResearchStatus.Text = $"Completed {technology.TechnologyName}. Use File > Save to write the change."
+            lblResearchStatus.Text = Localization.F("Completed {0}. Use File > Save to write the change.", Localization.T(technology.TechnologyName))
         End Sub
 
         Private Sub btnResetSelectedResearch_Click(sender As Object, e As RoutedEventArgs)
@@ -3277,7 +3286,7 @@ Namespace SpaceHavenEditor2
             RemoveTechnologyFromResearchQueue(technology.TechId)
             LoadResearchEditor(technology.TechId)
             MarkUnsavedChanges()
-            lblResearchStatus.Text = $"Reset {technology.TechnologyName} to not started."
+            lblResearchStatus.Text = Localization.F("Reset {0} to not started.", Localization.T(technology.TechnologyName))
         End Sub
 
         Private Sub btnCompleteAllResearch_Click(sender As Object, e As RoutedEventArgs)
@@ -3292,7 +3301,7 @@ Namespace SpaceHavenEditor2
             GetResearchQueueElement()?.RemoveNodes()
             LoadResearchEditor()
             MarkUnsavedChanges()
-            lblResearchStatus.Text = "All research technologies have been marked completed."
+            lblResearchStatus.Text = Localization.T("All research technologies have been marked completed.")
         End Sub
 
         Private Sub btnAddResearchQueue_Click(sender As Object, e As RoutedEventArgs)
@@ -3316,7 +3325,7 @@ Namespace SpaceHavenEditor2
             GetResearchQueueElement()?.Add(New XElement("l", New XAttribute("techId", technology.TechId)))
             LoadResearchEditor(technology.TechId, researchQueue.Count)
             MarkUnsavedChanges()
-            lblResearchStatus.Text = $"Added {technology.TechnologyName} to the research queue."
+            lblResearchStatus.Text = Localization.F("Added {0} to the research queue.", Localization.T(technology.TechnologyName))
         End Sub
 
         Private Sub btnRemoveResearchQueue_Click(sender As Object, e As RoutedEventArgs)
@@ -3326,7 +3335,7 @@ Namespace SpaceHavenEditor2
             queueItem.QueueElement?.Remove()
             LoadResearchEditor(queueItem.TechId, Math.Min(oldIndex, researchQueue.Count - 2))
             MarkUnsavedChanges()
-            lblResearchStatus.Text = $"Removed {queueItem.TechnologyName} from the research queue."
+            lblResearchStatus.Text = Localization.F("Removed {0} from the research queue.", Localization.T(queueItem.TechnologyName))
         End Sub
 
         Private Sub MoveResearchQueueItem(direction As Integer)
@@ -3360,7 +3369,7 @@ Namespace SpaceHavenEditor2
             GetResearchQueueElement()?.RemoveNodes()
             LoadResearchEditor()
             MarkUnsavedChanges()
-            lblResearchStatus.Text = "Research queue cleared."
+            lblResearchStatus.Text = Localization.T("Research queue cleared.")
         End Sub
 
         Private Function GetDatalogsElement() As XElement
@@ -3571,7 +3580,7 @@ Namespace SpaceHavenEditor2
                 Dim scheduleId = CInt(cmbCrewGlobalSchedule.SelectedValue)
                 ApplyGlobalScheduleToCharacter(selectedCharacter, scheduleId)
                 dgvCrewSchedule.ItemsSource = New ObservableCollection(Of CrewScheduleSlot)(selectedCharacter.CharacterSchedule)
-                txtScheduleMode.Text = $"Currently follows {GetGlobalScheduleDisplayName(scheduleId)}."
+                txtScheduleMode.Text = Localization.F("Currently follows {0}.", GetGlobalScheduleDisplayName(scheduleId))
                 MarkUnsavedChanges()
             Catch ex As Exception
                 MessageBox.Show(Localization.F("Could not assign global schedule: {0}", ex.Message), Localization.T("Schedule Error"),
@@ -3599,7 +3608,7 @@ Namespace SpaceHavenEditor2
 
         Private Sub UpdateBulkScheduleCounts()
             If bulkScheduleCrew Is Nothing OrElse bulkScheduleCrew.Count = 0 Then
-                lblBulkScheduleCounts.Text = "Crew schedules: No crew loaded"
+                lblBulkScheduleCounts.Text = Localization.T("Crew schedules: No crew loaded")
                 Return
             End If
 
@@ -3757,7 +3766,7 @@ Namespace SpaceHavenEditor2
 
         Private Sub RefreshCrewRecoverySummary(character As Character)
             If character Is Nothing Then
-                txtCrewRecoveryMember.Text = "Select a crew member to view recovery details."
+                txtCrewRecoveryMember.Text = Localization.T("Select a crew member to view recovery details.")
                 dgvCrewRecoveryVitals.ItemsSource = Nothing
                 lblCrewRecoveryStatus.Text = ""
                 Return
@@ -3780,7 +3789,7 @@ Namespace SpaceHavenEditor2
             AddCrewRecoveryVital(vitalItems, propsNode, "SmokeGas", "Exposure")
             AddCrewRecoveryVital(vitalItems, propsNode, "HazardousGas", "Exposure")
 
-            txtCrewRecoveryMember.Text = $"{character.CharacterName} (Crew ID {character.CharacterEntityId})"
+            txtCrewRecoveryMember.Text = Localization.F("{0} (Crew ID {1})", character.CharacterName, character.CharacterEntityId)
             dgvCrewRecoveryVitals.ItemsSource = vitalItems
         End Sub
 
@@ -3949,7 +3958,7 @@ Namespace SpaceHavenEditor2
                 If currentCharacter IsNot Nothing AndAlso selectedCrew.Any(Function(item) item.Crew.CharacterEntityId = currentCharacter.CharacterEntityId) Then
                     cmbCrewGlobalSchedule.SelectedValue = scheduleId
                     dgvCrewSchedule.ItemsSource = New ObservableCollection(Of CrewScheduleSlot)(currentCharacter.CharacterSchedule)
-                    txtScheduleMode.Text = $"Currently follows {GetGlobalScheduleDisplayName(scheduleId)}."
+                    txtScheduleMode.Text = Localization.F("Currently follows {0}.", GetGlobalScheduleDisplayName(scheduleId))
                 End If
             Catch ex As Exception
                 MessageBox.Show(Localization.F("Could not apply bulk schedule: {0}", ex.Message), Localization.T("Bulk Schedule Error"),
@@ -3975,7 +3984,7 @@ Namespace SpaceHavenEditor2
             Dim selectedCharacter = TryCast(lstCharacters.SelectedItem, Character)
             If selectedCharacter Is Nothing OrElse selectedCharacter.CharacterRelationships Is Nothing Then
                 dgvRelationships.ItemsSource = Nothing
-                txtRelationshipPageInfo.Text = "Page 0 of 0"
+                txtRelationshipPageInfo.Text = Localization.T("Page 0 of 0")
                 btnRelPrev.IsEnabled = False
                 btnRelNext.IsEnabled = False
                 Return
@@ -3999,7 +4008,7 @@ Namespace SpaceHavenEditor2
             dgvRelationships.ItemsSource = New ObservableCollection(Of RelationshipInfo)(pagedList)
 
             ' Update paging info text and button states
-            txtRelationshipPageInfo.Text = $"Page {_relationshipsCurrentPage} of {totalPages}"
+            txtRelationshipPageInfo.Text = Localization.F("Page {0} of {1}", _relationshipsCurrentPage, totalPages)
             btnRelPrev.IsEnabled = (_relationshipsCurrentPage > 1)
             btnRelNext.IsEnabled = (_relationshipsCurrentPage < totalPages)
         End Sub
@@ -4117,7 +4126,7 @@ Namespace SpaceHavenEditor2
             Dim results = visibleItems.ToList()
             dgvConsolidatedInventory.ItemsSource = results
             Dim totalUnits = results.Sum(Function(item) item.TotalQuantity)
-            lblInventorySummary.Text = $"{results.Count} item types | {totalUnits} total units | {currentShipStorageContainers.Count} containers"
+            lblInventorySummary.Text = Localization.F("{0} item types | {1} total units | {2} containers", results.Count, totalUnits, currentShipStorageContainers.Count)
         End Sub
 
         Private Sub txtInventorySearch_TextChanged(sender As Object, e As TextChangedEventArgs)
@@ -4357,17 +4366,17 @@ Namespace SpaceHavenEditor2
             dgvTraits.ItemsSource = Nothing
             lstConditions.ItemsSource = Nothing
             dgvRelationships.ItemsSource = Nothing ' Clear Relationships Grid
-            txtRelationshipPageInfo.Text = "Page 0 of 0" ' Clear Paging Label
+            txtRelationshipPageInfo.Text = Localization.T("Page 0 of 0") ' Clear Paging Label
             btnRelPrev.IsEnabled = False
             btnRelNext.IsEnabled = False
             cmbRelationshipTarget.ItemsSource = Nothing
             dgvCrewSchedule.ItemsSource = Nothing
             txtScheduleMode.Text = ""
             cmb_addTrait.ItemsSource = Nothing
-            txtCrewRecoveryMember.Text = "Select a crew member to view recovery details."
+            txtCrewRecoveryMember.Text = Localization.T("Select a crew member to view recovery details.")
             dgvCrewRecoveryVitals.ItemsSource = Nothing
             lblCrewRecoveryStatus.Text = ""
-            txtCrewLoadoutMember.Text = "Select a crew member to view their loadout."
+            txtCrewLoadoutMember.Text = Localization.T("Select a crew member to view their loadout.")
             PopulateLoadoutControls(New LoadoutTemplate(), True)
             lblCrewLoadoutStatus.Text = ""
         End Sub
@@ -4442,7 +4451,7 @@ Namespace SpaceHavenEditor2
                 lbl_shipSize.Text = Localization.F("Size: {0}x{1}", selectedShip.Sx, selectedShip.Sy)
                 Dim canvasWidth As Integer = selectedShip.Sx \ 28 ' Use integer division
                 Dim canvasHeight As Integer = selectedShip.Sy \ 28 ' Use integer division
-                lbl_CanvasSize.Text = $"Canvas Size: {canvasWidth} W x {canvasHeight} H squares"
+                lbl_CanvasSize.Text = Localization.F("Canvas Size: {0} W x {1} H squares", canvasWidth, canvasHeight)
 
                 ' *** CRUCIAL: Update the XML document in memory ***
                 UpdateXmlWithShipSize(selectedShip)
@@ -4505,13 +4514,13 @@ Namespace SpaceHavenEditor2
 
         ' --- Helper functions for IDs ---
         Private Function GetAttributeNameById(id As Integer) As String
-            Return If(IdCollection.DefaultAttributeIDs.ContainsKey(id), Localization.T(IdCollection.DefaultAttributeIDs(id)), Localization.F("Unknown ({0})", id))
+            Return If(IdCollection.DefaultAttributeIDs.ContainsKey(id), IdCollection.DefaultAttributeIDs(id), Localization.F("Unknown ({0})", id))
         End Function
         Private Function GetSkillNameById(id As Integer) As String
-            Return If(IdCollection.DefaultSkillIDs.ContainsKey(id), Localization.T(IdCollection.DefaultSkillIDs(id)), Localization.F("Unknown ({0})", id))
+            Return If(IdCollection.DefaultSkillIDs.ContainsKey(id), IdCollection.DefaultSkillIDs(id), Localization.F("Unknown ({0})", id))
         End Function
         Private Function GetTraitNameById(id As Integer) As String
-            Return If(IdCollection.DefaultTraitIDs.ContainsKey(id), Localization.T(IdCollection.DefaultTraitIDs(id)), Localization.F("Unknown ({0})", id))
+            Return If(IdCollection.DefaultTraitIDs.ContainsKey(id), IdCollection.DefaultTraitIDs(id), Localization.F("Unknown ({0})", id))
         End Function
 
         ' --- Populate Dropdowns ---
@@ -4543,7 +4552,7 @@ Namespace SpaceHavenEditor2
             Debug.WriteLine($"Available Traits Count: {availableTraits.Count}")
 
             ' Populate the dropdown
-            cmb_addTrait.ItemsSource = availableTraits
+            cmb_addTrait.ItemsSource = availableTraits.Select(Function(trait) New IdLabel(trait.Key, trait.Value)).ToList()
             If availableTraits.Any() Then
                 cmb_addTrait.SelectedIndex = 0
             Else
@@ -4579,7 +4588,7 @@ Namespace SpaceHavenEditor2
                 Return
             End If
             Dim selectedTraitId = CInt(cmb_addTrait.SelectedValue)
-            Dim selectedTraitName = CType(cmb_addTrait.SelectedItem, KeyValuePair(Of Integer, String)).Value
+            Dim selectedTraitName = DirectCast(cmb_addTrait.SelectedItem, IdLabel).Value
             If Not selectedCharacter.CharacterTraits.Any(Function(t) t.Id = selectedTraitId) Then
                 Dim newTrait As New DataProp With {.Id = selectedTraitId, .Name = selectedTraitName}
                 selectedCharacter.CharacterTraits.Add(newTrait)
@@ -4631,12 +4640,13 @@ Namespace SpaceHavenEditor2
             If lstBulkTraits Is Nothing Then Return
             lstBulkTraits.ItemsSource = IdCollection.DefaultTraitIDs.
                 OrderBy(Function(pair) pair.Value).
+                Select(Function(pair) New IdLabel(pair.Key, pair.Value)).
                 ToList()
 
             Dim ship = ships.FirstOrDefault(Function(item) item.Sid = shipSid)
             Dim crewCount = characters.Where(Function(character) character.ShipSid = shipSid).Count()
             If ship Is Nothing OrElse shipSid = -1 Then
-                lblBulkTraitsShip.Text = "Select a ship or station in Crew Editor."
+                lblBulkTraitsShip.Text = Localization.T("Select a ship or station in Crew Editor.")
             Else
                 lblBulkTraitsShip.Text = $"Target: {ship.DisplayName} ({crewCount} crew member(s))."
             End If
@@ -4701,7 +4711,7 @@ Namespace SpaceHavenEditor2
             End If
 
             Dim selectedTraits = lstBulkTraits.SelectedItems.
-                Cast(Of KeyValuePair(Of Integer, String)).
+                Cast(Of IdLabel).
                 ToList()
             Dim additions = 0
             For Each character In targetCrew
@@ -4714,8 +4724,7 @@ Namespace SpaceHavenEditor2
 
             RefreshCurrentTraitEditorIfNeeded(targetCrew)
             MarkUnsavedChanges()
-            lblBulkTraitsStatus.Text =
-                $"Added {selectedTraits.Count} selected trait(s) across {targetCrew.Count} crew member(s). New trait entries added: {additions}. Existing traits were skipped."
+            lblBulkTraitsStatus.Text = Localization.F("Added {0} selected trait(s) across {1} crew member(s). New trait entries added: {2}. Existing traits were skipped.", selectedTraits.Count, targetCrew.Count, additions)
         End Sub
 
         Private Sub btnBulkClearTraits_Click(sender As Object, e As RoutedEventArgs)
@@ -4755,7 +4764,7 @@ Namespace SpaceHavenEditor2
             pnlStationInfo.Visibility = Visibility.Collapsed
             lstCharacters.ItemsSource = Nothing
             ClearDataGrids()
-            txtCrewCount.Text = "Total Crew: N/A"
+            txtCrewCount.Text = Localization.T("Total Crew: N/A")
         End Sub
 
         ' --- Set All Buttons (Full versions, save immediately) ---
@@ -4773,7 +4782,7 @@ Namespace SpaceHavenEditor2
             consolidatedInventory.Clear()
             CurrentContainerItems = Nothing
             txtContainerInfo.Text = Localization.T("(Select Container)")
-            lblInventorySummary.Text = "0 item types | 0 total units | 0 containers"
+            lblInventorySummary.Text = Localization.T("0 item types | 0 total units | 0 containers")
         End Sub
         Private Sub ClearStorageGrid() ' Renamed from previous ambiguous name
             dgvStorage.ItemsSource = Nothing
@@ -5809,7 +5818,7 @@ Namespace SpaceHavenEditor2
             If cmbEmbeddedAvailableTraits.SelectedValue Is Nothing Then Return
             Dim traitId = CInt(cmbEmbeddedAvailableTraits.SelectedValue)
             If embeddedNewCrewTraits.Any(Function(trait) trait.Id = traitId) Then Return
-            Dim selectedTrait = DirectCast(cmbEmbeddedAvailableTraits.SelectedItem, KeyValuePair(Of Integer, String))
+            Dim selectedTrait = DirectCast(cmbEmbeddedAvailableTraits.SelectedItem, IdLabel)
             embeddedNewCrewTraits.Add(New DataProp With {.Id = traitId, .Name = selectedTrait.Value})
         End Sub
 
@@ -6021,14 +6030,14 @@ Namespace SpaceHavenEditor2
         Private Sub BtnBulkAddCrew_Click(sender As Object, e As RoutedEventArgs)
             ' Ensure XML is loaded
             If xmlDoc Is Nothing OrElse xmlDoc.Root Is Nothing Then
-                lblBulkStatus.Text = "Please load a save file first."
+                lblBulkStatus.Text = Localization.T("Please load a save file first.")
                 Return
             End If
 
             ' 1. Get the selected ship
             Dim selectedShip As Ship = TryCast(cmb_ships.SelectedItem, Ship)
             If selectedShip Is Nothing OrElse selectedShip.Sid = -1 Then
-                lblBulkStatus.Text = "Please select a ship first."
+                lblBulkStatus.Text = Localization.T("Please select a ship first.")
                 Return
             End If
 
@@ -6041,14 +6050,14 @@ Namespace SpaceHavenEditor2
             ' 2. Get the selected template crew member
             Dim templateCrewElement As XElement = GetSelectedTemplateCrewNode()
             If templateCrewElement Is Nothing Then
-                lblBulkStatus.Text = "Please select a template crew member."
+                lblBulkStatus.Text = Localization.T("Please select a template crew member.")
                 Return
             End If
 
             ' 3. Get and validate the amount to add
             Dim amountToAdd As Integer
             If Not Integer.TryParse(txtBulkCrewAmount.Text, amountToAdd) OrElse amountToAdd <= 0 Then
-                lblBulkStatus.Text = "Please enter a valid positive number to add."
+                lblBulkStatus.Text = Localization.T("Please enter a valid positive number to add.")
                 Return
             End If
 
@@ -6230,7 +6239,7 @@ Namespace SpaceHavenEditor2
 
             cmbTemplateCrew.ItemsSource = Nothing
             If shipSid = -1 Then
-                lblBulkStatus.Text = "Please select a ship first."
+                lblBulkStatus.Text = Localization.T("Please select a ship first.")
                 btnBulkAddCrew.IsEnabled = False
                 Return
             End If
@@ -6239,7 +6248,7 @@ Namespace SpaceHavenEditor2
             Debug.WriteLine($"Crew Found for Ship {shipSid}: {crewList.Count}")
 
             If crewList.Count = 0 Then
-                lblBulkStatus.Text = "No crew members found for this ship. Add a crew member first."
+                lblBulkStatus.Text = Localization.T("No crew members found for this ship. Add a crew member first.")
                 btnBulkAddCrew.IsEnabled = False
                 Return
             End If
@@ -6256,7 +6265,7 @@ Namespace SpaceHavenEditor2
                 lblBulkStatus.Text = $"Template crew loaded ({crewList.Count} members). Ready to add crew."
             Else
                 btnBulkAddCrew.IsEnabled = False
-                lblBulkStatus.Text = "No crew members found for this ship. Add a crew member first."
+                lblBulkStatus.Text = Localization.T("No crew members found for this ship. Add a crew member first.")
             End If
         End Sub
 
@@ -6907,7 +6916,7 @@ Namespace SpaceHavenEditor2
 
             ' Mark as unsaved (changes are in memory, will be saved when user clicks File > Save)
             MarkUnsavedChanges()
-            lblBulkSkillStatus.Text = "All skills set to their maximum level for every character."
+            lblBulkSkillStatus.Text = Localization.T("All skills set to their maximum level for every character.")
         End Sub
 
         ' ===== UNIFORM EDITING METHODS =====
@@ -7962,16 +7971,14 @@ Namespace SpaceHavenEditor2
             If Not ReferenceEquals(e.OriginalSource, mainNavigationTabs) Then Return
 
             Dim selectedTab = TryCast(mainNavigationTabs.SelectedItem, TabItem)
-            Dim selectedHeader = TryCast(selectedTab?.Header, String)
 
-            Select Case selectedHeader
-                Case "Ship Import and Export"
-                    txtMainEditorTitle.Text = "Ship Blueprint Manager"
-                Case "Game Start Editor"
-                    txtMainEditorTitle.Text = "Game Start & Difficulty Editor"
-                Case Else
-                    txtMainEditorTitle.Text = "Moragar's Space Haven Save Game Editor"
-            End Select
+            If ReferenceEquals(selectedTab, navShipTransfer) Then
+                txtMainEditorTitle.Text = Localization.T("Ship Blueprint Manager")
+            ElseIf ReferenceEquals(selectedTab, navGameStartEditor) Then
+                txtMainEditorTitle.Text = Localization.T("Game Start & Difficulty Editor")
+            Else
+                txtMainEditorTitle.Text = Localization.T("Moragar's Space Haven Save Game Editor")
+            End If
         End Sub
 
     End Class

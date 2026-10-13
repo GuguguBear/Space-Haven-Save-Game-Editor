@@ -28,4 +28,20 @@ Namespace SpaceHavenEditor2
             End Get
         End Property
     End Class
+
+    Public Class IdLabel
+        Public Sub New(key As Integer, value As String)
+            Me.Key = key
+            Me.Value = value
+        End Sub
+
+        Public Property Key As Integer
+        Public Property Value As String
+
+        Public ReadOnly Property Display As String
+            Get
+                Return Localization.T(Value)
+            End Get
+        End Property
+    End Class
 End Namespace

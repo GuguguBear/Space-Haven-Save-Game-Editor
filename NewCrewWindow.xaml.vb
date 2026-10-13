@@ -13,7 +13,7 @@ Namespace SpaceHavenEditor2
         Public Skills As List(Of DataProp)
         Public Traits As ObservableCollection(Of DataProp)
         Public Property SelectedTemplateCharacterId As Integer = -1
-        Private AvailableTraits As List(Of KeyValuePair(Of Integer, String))
+        Private AvailableTraits As List(Of IdLabel)
 
         Public Sub New(availableCharacters As List(Of Character))
             InitializeComponent()
@@ -39,7 +39,8 @@ Namespace SpaceHavenEditor2
             dgvNewAttributes.ItemsSource = Attributes
             dgvNewSkills.ItemsSource = Skills
 
-            AvailableTraits = IdCollection.DefaultTraitIDs.OrderBy(Function(kvp) kvp.Value).ToList()
+            AvailableTraits = IdCollection.DefaultTraitIDs.OrderBy(Function(kvp) kvp.Value).
+                Select(Function(kvp) New IdLabel(kvp.Key, kvp.Value)).ToList()
             cmbAvailableTraits.ItemsSource = AvailableTraits
             If cmbAvailableTraits.Items.Count > 0 Then cmbAvailableTraits.SelectedIndex = 0
 
@@ -86,7 +87,7 @@ Namespace SpaceHavenEditor2
             If cmbAvailableTraits.SelectedValue IsNot Nothing Then
                 Dim selectedTraitId = CInt(cmbAvailableTraits.SelectedValue)
                 If Not Traits.Any(Function(t) t.Id = selectedTraitId) Then
-                    Dim selectedTraitName = CType(cmbAvailableTraits.SelectedItem, KeyValuePair(Of Integer, String)).Value
+                    Dim selectedTraitName = DirectCast(cmbAvailableTraits.SelectedItem, IdLabel).Value
                     Traits.Add(New DataProp With {.Id = selectedTraitId, .Name = selectedTraitName})
                 End If
             End If
