@@ -101,12 +101,12 @@ Namespace SpaceHavenEditor2
 
         Private Sub btnCreateCrew_Click(sender As Object, e As RoutedEventArgs)
             If String.IsNullOrWhiteSpace(txtNewCrewName.Text) Then
-                MessageBox.Show("Please enter a name.", "Name Required", MessageBoxButton.OK, MessageBoxImage.Warning) : Return
+                MessageBox.Show(Localization.T("Please enter a name."), Localization.T("Name Required"), MessageBoxButton.OK, MessageBoxImage.Warning) : Return
             End If
 
             ' Validate template character is selected
             If cmbTemplateCharacter.SelectedItem Is Nothing Then
-                MessageBox.Show("Please select a template character to copy structure from.", "Template Required", MessageBoxButton.OK, MessageBoxImage.Warning) : Return
+                MessageBox.Show(Localization.T("Please select a template character to copy structure from."), Localization.T("Template Required"), MessageBoxButton.OK, MessageBoxImage.Warning) : Return
             End If
 
             ' Basic validation for numeric values in grids (more robust validation could be added)
@@ -118,7 +118,7 @@ Namespace SpaceHavenEditor2
                     If item.Value < 0 Then Throw New Exception($"Skill '{item.Name}' has invalid value.")
                 Next
             Catch ex As Exception
-                MessageBox.Show($"Validation Error: {ex.Message} Values must be non-negative numbers.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning)
+                MessageBox.Show(Localization.F("Validation Error: {0} Values must be non-negative numbers.", ex.Message), Localization.T("Validation Error"), MessageBoxButton.OK, MessageBoxImage.Warning)
                 Return
             End Try
 

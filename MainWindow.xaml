@@ -507,6 +507,11 @@
                 <Separator/>
                 <MenuItem Header="_About" Click="AboutMenu_Click"/>
             </MenuItem>
+            <MenuItem x:Name="menuLanguage" Header="Language / 语言 / 語言">
+                <MenuItem Header="English" Tag="en" IsCheckable="True" Click="LanguageMenu_Click"/>
+                <MenuItem Header="简体中文" Tag="zh-CN" IsCheckable="True" Click="LanguageMenu_Click"/>
+                <MenuItem Header="繁體中文" Tag="zh-TW" IsCheckable="True" Click="LanguageMenu_Click"/>
+            </MenuItem>
         </Menu>
 
         <Grid Margin="10">
@@ -1972,8 +1977,10 @@
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Faction" Binding="{Binding FactionName}" Width="150" IsReadOnly="True"/>
                                         <DataGridTextColumn Header="Reputation" Binding="{Binding Relationship, UpdateSourceTrigger=PropertyChanged}" Width="85"/>
-                                        <DataGridComboBoxColumn Header="Stance" Width="100"
-                                                                SelectedItemBinding="{Binding Stance, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <DataGridComboBoxColumn x:Name="colFactionStance" Header="Stance" Width="120"
+                                                                SelectedValueBinding="{Binding Stance, UpdateSourceTrigger=PropertyChanged}"
+                                                                SelectedValuePath="Value"
+                                                                DisplayMemberPath="Display"/>
                                         <DataGridTextColumn Header="Patience" Binding="{Binding Patience, UpdateSourceTrigger=PropertyChanged}" Width="75"/>
                                         <DataGridCheckBoxColumn Header="Trade" Binding="{Binding AccessTrade}" Width="60"/>
                                         <DataGridCheckBoxColumn Header="Ship" Binding="{Binding AccessShip}" Width="55"/>

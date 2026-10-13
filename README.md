@@ -1,4 +1,16 @@
-# 🚀 Space Haven Save Editor v2.0
+# 🚀 Space Haven Save Editor v2.1
+
+This repository is a fork of [Moragar360/Space-Haven-Save-Game-Editor](https://github.com/moragar360/Space-Haven-Save-Game-Editor). The original work, including the editor itself, remains Copyright (c) 2025 Moragar360 and is licensed under the MIT License. See `LICENSE`. Localization was added by [GuguguBear](https://github.com/GuguguBear). This fork does not change the copyright holder.
+
+本仓库是 [Moragar360/Space-Haven-Save-Game-Editor](https://github.com/moragar360/Space-Haven-Save-Game-Editor) 的分支。编辑器本体仍为 Moragar360 于 2025 年的作品，并继续使用 MIT 许可证，详见 `LICENSE`。多语言由 [GuguguBear](https://github.com/GuguguBear) 添加，不改变原作者的版权。
+
+## Languages / 语言
+
+The **Language / 语言 / 語言** menu switches the interface among English, Simplified Chinese, and Traditional Chinese. Item, skill, trait, and technology names use Space Haven's own Simplified Chinese text when the installed game has an exact match; Traditional Chinese is converted from that text. Values written back into a save, including faction stances, stay in the game's original English.
+
+菜单 **Language / 语言 / 語言** 可在英文、简体中文和繁体中文之间切换界面。物品、技能、特质和科技名称会在与已安装游戏的简体中文文本完全一致时使用游戏原文；繁体中文由简体中文转换而来。写回存档的数值（包括派系立场）保持游戏原来的英文。
+
+---
 
 Take full control of your Space Haven adventure! This suite of tools lets you modify almost every aspect of your Space Haven experience, from starting a new game to managing complex save files and ship blueprints. Built fresh to support **Space Haven Beta 2**.
 
